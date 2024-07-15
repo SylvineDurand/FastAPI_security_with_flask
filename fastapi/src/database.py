@@ -17,7 +17,6 @@ class UserDB(Base):
     full_name = Column(String)
     email = Column(String, unique=True, index=True)
     hashed_password = Column(String)
-    disabled = Column(Boolean, default=False)
     user_role = Column(String)  
 
 # Créer les tables dans la base de données

@@ -6,35 +6,26 @@ from passlib.context import CryptContext
 
 load_dotenv()
 
-# Initialisation de la base de données
-Base.metadata.create_all(bind=engine)
 
-# Création de la session
+Base.metadata.create_all(bind=engine)
 session = Session(bind=engine)
 
-# Configuration de bcrypt
+# bcrypt config
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# Hachage du mot de passe admin
+# creating user admin
 hashed_password = pwd_context.hash("admin")
 
-# Création de l'utilisateur admin
 admin_user = UserDB(
     username="admin",
     full_name="Administrator",
     email="admin@example.com",
     hashed_password=hashed_password,
-    disabled=False,
-    user_role="admin"  # Ajout du champ user_role
+    user_role="admin"  
 )
 
-# Ajout de l'utilisateur à la session
 session.add(admin_user)
-
-# Validation de la transaction
 session.commit()
-
-# Fermeture de la session
 session.close()
 
-print("Base de données initialisée avec l'utilisateur admin.")
+print("Database initialized with user 'admin'")
