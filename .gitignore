@@ -168,3 +168,5 @@ data/
 
 fastapi/venv*
 flask/venv*
+fastapi/users.db
+.env
