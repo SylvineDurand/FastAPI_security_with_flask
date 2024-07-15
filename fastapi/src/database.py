@@ -3,7 +3,7 @@ from sqlalchemy import create_engine, Column, String, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-DATABASE_URL = "sqlite:///./test.db"
+DATABASE_URL = "sqlite:///./users.db"
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -17,7 +17,6 @@ class UserDB(Base):
     full_name = Column(String)
     email = Column(String, unique=True, index=True)
     hashed_password = Column(String)
-    disabled = Column(Boolean, default=False)
     user_role = Column(String)  
 
 # Créer les tables dans la base de données

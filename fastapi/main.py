@@ -84,14 +84,6 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], db: Se
     return user
 
 
-async def get_current_active_user(
-    current_user: Annotated[User, Depends(get_current_user)],
-):
-    if current_user.disabled:
-        raise HTTPException(status_code=400, detail="Inactive user")
-    return current_user
-
-
 
  # function for user management 
  # ---------------------------------------------------------------------
@@ -102,7 +94,6 @@ def create_user(db: Session, user: UserCreate):
         email=user.email,
         full_name=user.full_name,
         hashed_password=hashed_password,
-        disabled=user.disabled,
         user_role=user.user_role
     )
     db.add(db_user)
@@ -139,7 +130,7 @@ async def login_for_access_token(
 # returns current user
 @app.get("/users/me/", response_model=User)
 async def read_users_me(
-    current_user: Annotated[User, Depends(get_current_active_user)],
+    current_user: Annotated[User, Depends(get_current_user)],
 ):
     return current_user
 
@@ -156,13 +147,18 @@ def create_new_user(user: UserCreate, db: Session = Depends(get_db)):
 
 # get list of all users
 @app.get("/users_list/", response_model=list[User])
-def read_users(db: Session = Depends(get_db)):
+def read_users(current_user: Annotated[User, Depends(get_current_user)], db: Session = Depends(get_db)):
+    if current_user.user_role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Your role is {current_user.user_role}, you must be an admin to access this page",
+        )
     return db.query(UserDB).all()
 
 
 # accessible only to admins
 @app.get("/admin_only", response_model=User)
-async def read_users_me(current_user: Annotated[User, Depends(get_current_active_user)]):
+async def read_users_me(current_user: Annotated[User, Depends(get_current_user)]):
     if current_user.user_role != "admin":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -172,7 +168,7 @@ async def read_users_me(current_user: Annotated[User, Depends(get_current_active
 
 # accessible only to admins and ai team
 @app.get("/admin_and_ai_only", response_model=User)
-async def read_users_me(current_user: Annotated[User, Depends(get_current_active_user)]):
+async def read_users_me(current_user: Annotated[User, Depends(get_current_user)]):
 
     if current_user.user_role not in ["admin", "ai_team"]:
         raise HTTPException(

@@ -1,40 +1,38 @@
 import os
 from dotenv import load_dotenv
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, sessionmaker
 from src.database import engine, Base, UserDB
 from passlib.context import CryptContext
+from sqlalchemy import create_engine
 
 load_dotenv()
+DATABASE_URL = os.getenv("DATABASE_URL")
+ADMIN_PWD = os.getenv("ADMIN_PWD")
 
-# Initialisation de la base de données
+engine = create_engine(DATABASE_URL)
+
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+session = SessionLocal()
+
+
 Base.metadata.create_all(bind=engine)
 
-# Création de la session
-session = Session(bind=engine)
-
-# Configuration de bcrypt
+# bcrypt config
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# Hachage du mot de passe admin
-hashed_password = pwd_context.hash("admin")
+# creating user admin
+hashed_password = pwd_context.hash(ADMIN_PWD)
 
-# Création de l'utilisateur admin
 admin_user = UserDB(
     username="admin",
     full_name="Administrator",
     email="admin@example.com",
     hashed_password=hashed_password,
-    disabled=False,
-    user_role="admin"  # Ajout du champ user_role
+    user_role="admin"  
 )
 
-# Ajout de l'utilisateur à la session
 session.add(admin_user)
-
-# Validation de la transaction
 session.commit()
-
-# Fermeture de la session
 session.close()
 
-print("Base de données initialisée avec l'utilisateur admin.")
+print("Database initialized with user 'admin'")
